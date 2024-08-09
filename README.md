@@ -48,3 +48,5 @@ Seth
 
 P.S. Enjoy...and always, one can go to beagleboard.org to look over their builds, images, and boards. Also, I noticed
 a forum and docs.beagleboard.org bunch of ideas for assistance in building around particular boards.
+
+Here is also a page online where Capes are available: https://www.mouser.com/new/beagleboardorg/beaglebonecapes/
