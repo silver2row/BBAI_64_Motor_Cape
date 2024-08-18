@@ -1,9 +1,10 @@
 # BBAI_64_Motor_Cape
+
 A Build for the Motor Cape and BBAI-64 from beagleboard.org
 
 This machine, the BBAI-64, has a TDA4VM dual-core processor with other parts as coprocessors from TI.
 
-There is ongoing development for this board still going on, e.g. circa 8/2024.
+There is ongoing development for this board still going on, e.g. circa `8/2024`.
 
 I am building this method of ideas to help others get started with the BBAI-64, GPIO, PWM, and the Motor Cape.
 
@@ -21,6 +22,7 @@ I am building this method of ideas to help others get started with the BBAI-64, 
 10. cd /opt/source/dtb-6.1-Beagle/ && git pull
 11. ./build_n_install.sh
 12. fdtoverlays /overlays/k3-j721e-beagleboneai64-BBORG_MOTOR.dtbo goes in /boot/firmware/extlinux/extlinux.conf
+
 13. Use sudo to install the .dtbo file in /boot/firmware/extlinux/extlinux.conf
 14. Use the shell script provided in the forums and/or this repo
 15. This will ensure that the PWM outputs are available
@@ -33,6 +35,7 @@ I am building this method of ideas to help others get started with the BBAI-64, 
 22. Or, one can look in the source to understand what pins do what in b_script.c
 23. Now, apply the sh set_up_pwm.sh command to instantiate the pinmuxing of the PWM peripherals/outputs
 24. gcc b_script -o b_script
+
 25. That should compile or use your own source to fully captivate audiences
 26. Then, ./b_script to run the binary that gcc has just produced
 27. There should be a Red LED lit and the motor or locking solenoid, in my case, should move
@@ -50,3 +53,15 @@ P.S. Enjoy...and always, one can go to beagleboard.org to look over their builds
 a forum and docs.beagleboard.org bunch of ideas for assistance in building around particular boards.
 
 Here is also a page online where Capes are available: https://www.mouser.com/new/beagleboardorg/beaglebonecapes/
+
+```
+# Also
+```
+
+* WIP
+
+```
+a. Build a better bot!
+b. Make the bot do something fascinating!
+c. Repeat a. and b. until infinity!
+```
