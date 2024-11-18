@@ -10,30 +10,39 @@ I am building this method of ideas to help others get started with the BBAI-64, 
 
 ```
 1. First, install the image
-2. The image is located here: https://www.beagleboard.org/distros/bbai64-debian-12-6-2024-07-04-xfce
-3. Use Balena Etcher or another flashing tool to put it on the micro SD Card and then apply power only after
-   installing the micro SD Card into the BBAI-64
+2. The image is located here: 
+   https://www.beagleboard.org/distros/bbai64-debian-12-6-2024-07-04-xfce
+3. Use Balena Etcher or another flashing tool to put it on the micro SD Card, attach
+   the micro SD Card to the cage on the BBAI-64,
+   and then apply power
 4. Boot and type in ssh debian@192.168.7.2
-5. A USB C to USB C cable would be preferable in this instance for ssh communication 
+5. A USB C to USB C cable would be preferable in this instance
+   for ssh communication and power 
 6. On your development desktop, ssh into the board with passcode tmppwd
 7. Clone this repo and look around or change things (my source is an ongoing affair)
 8. sudo apt update && sudo apt upgrade
 9. sudo apt-get dist-upgrade -yq
 10. cd /opt/source/dtb-6.1-Beagle/ && git pull
 11. ./build_n_install.sh
-12. fdtoverlays /overlays/k3-j721e-beagleboneai64-BBORG_MOTOR.dtbo goes in /boot/firmware/extlinux/extlinux.conf
+12. fdtoverlays /overlays/k3-j721e-beagleboneai64-BBORG_MOTOR.dtbo
+    goes in /boot/firmware/extlinux/extlinux.conf
 
 13. Use sudo to install the .dtbo file in /boot/firmware/extlinux/extlinux.conf
-14. Use the shell script provided in the forums and/or this repo
+14. Use the shell script provided in the forums and/or this repo under scripts
 15. This will ensure that the PWM outputs are available
 16. sudo shutdown -h now
-17. Attach the Motor Cape and attach PWR, GND, and a single phase motor to Motor1 on the headers of the Motor Cape
+17. Attach the Motor Cape and attach PWR, GND, and a single phase motor
+    to Motor1 on the headers of the Motor Cape
 18. Apply power to your board and apply power to the Motor Cape
 19. I use a variable Bench Supply PSU for testing
-20. Also, during each boot, one will need to apply the shell script and/or make a .service file for running on boot
-21. Please view the photos of the Headers for accessing what pins do what to what connectors on the Motor Cape
-22. Or, one can look in the source to understand what pins do what in b_script.c
-23. Now, apply the sh set_up_pwm.sh command to instantiate the pinmuxing of the PWM peripherals/outputs
+20. Also, during each boot, one will need to apply the shell script and/or 
+    make a .service file for running on boot
+21. Please view the photos of the Headers for accessing what pins
+    do what to what connectors on the Motor Cape
+22. Or, one can look in the source to understand what pins do what in
+    b_script.c
+23. Now, apply the sh set_up_pwm.sh command to instantiate the 
+    pinmuxing of the PWM peripherals/outputs
 24. gcc b_script -o b_script
 
 25. That should compile or use your own source to fully captivate audiences
