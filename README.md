@@ -10,7 +10,7 @@ I am building this method of ideas to help others get started with the BBAI-64, 
 
 ```
 1. First, install the image
-2. The image is located here: 
+2. The image is located here: There is also a newer image that one can find on beagleboard.org for the BBAI-64 (6.12.x)! 
    https://www.beagleboard.org/distros/bbai64-debian-12-6-2024-07-04-xfce
 3. Use Balena Etcher or another flashing tool to put it on the micro SD Card, attach
    the micro SD Card to the cage on the BBAI-64,
