@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Precision Linear Actuator - Calibrated Cockpit</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            background-color: #121214;
+            color: #e1e1e6;
+            margin-top: 40px;
+        }
+        .container {
+            background-color: #202024;
+            padding: 30px;
+            border-radius: 12px;
+            display: inline-block;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+            text-align: left;
+            width: 100%;
+            max-width: 420px;
+        }
+        .telemetry-node {
+            font-size: 1.1em;
+            padding: 15px;
+            background-color: #121214;
+            border-radius: 6px;
+            color: #00e6ff;
+            margin-bottom: 25px;
+            font-family: monospace;
+            border: 1px solid #29292e;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #c4c4cc;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #29292e;
+            background-color: #121214;
+            color: white;
+            font-size: 1.1em;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            background-color: #8257e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn-action:hover { background-color: #9466ff; }
+        .btn-action:disabled { background-color: #494950; cursor: not-allowed; }
+        .btn-calibrate {
+            background-color: #ff9f1c;
+            color: #121214;
+            margin-bottom: 20px;
+        }
+        .btn-calibrate:hover { background-color: #ffb703; }
+        .jog-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn-jog {
+            flex: 1;
+            padding: 12px;
+            background-color: #4e4e66;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-jog:active, .active-press {
+            background-color: #00e6ff !important;
+            color: #121214;
+        }
+        .keyboard-hint {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #aaa;
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 style="margin-top:0; text-align:center; color:white;">alibrated Symmetric Axis</h2>
+    
+    <div class="telemetry-node">
+        CURRENT POSITION > <span id="pos-display">{{ "%.2f"|format(position) }}</span> mm<br>
+        SYSTEM STATUS   > <span id="msg-display" style="color: #ff9f1c;">NCALIBRATED - Run Homing First</span>
+    </div>
+
+    <!-- Homing Trigger Button -->
+    <button id="cal-btn" class="btn-action btn-calibrate" onclick="runCalibration()">Run Automated Axis Calibration</button>
+
+    <!-- Absolute Target Coordinate Entry Fields (Disabled at startup until calibrated) -->
+    <div class="input-group">
+        <label for="target-input">Absolute Destination ({{ min_travel }} to {{ max_travel }}mm):</label>
+        <input type="number" id="target-input" step="0.1" min="{{ min_travel }}" max="{{ max_travel }}" value="0.0" disabled>
+        <button id="run-btn" class="btn-action" onclick="transmitCoordinate(null)" disabled>Go to Absolute Coordinate</button>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #29292e; margin: 20px 0;">
+
+    <!-- Relative Jogging Components -->
+    <div class="input-group">
+        <label for="jog-size">Keyboard Jog Distance Per Press:</label>
+        <select id="jog-size" disabled>
+            <option value="1.0">1.0 mm (Fine adjustment)</option>
+            <option value="5.0" selected>5.0 mm (Standard move)</option>
+            <option value="10.0">10.0 mm (Coarse travel)</option>
+        </select>
+        
+        <div class="jog-controls">
+            <button id="btn-back" class="btn-jog" onclick="transmitCoordinate('backward')" disabled>Left / - (S)</button>
+            <button id="btn-fwd" class="btn-jog" onclick="transmitCoordinate('forward')" disabled>Right / + (W)</button>
+        </div>
+    </div>
+
+    <div class="keyboard-hint">
+        System blocks targets until calibration maps physical limits.<br>
+        After calibration, use <strong>W / S / Arrow Keys</strong> to jog.
+    </div>
+</div>
+
+<script>
+let isProcessing = false;
+let axisCalibrated = false;
+
+function runCalibration() {
+    if (isProcessing) return;
+    isProcessing = true;
+    
+    const msgBox = document.getElementById('msg-display');
+    const calBtn = document.getElementById('cal-btn');
+    
+    msgBox.textContent = "Homing sequence initiated... Please wait.";
+    msgBox.style.color = "#ff9f1c";
+    calBtn.disabled = true;
+
+    fetch('/calibrate', { method: 'POST' })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        return data;
+    })
+    .then(data => {
+        document.getElementById('pos-display').textContent = data.position.toFixed(2);
+        msgBox.textContent = "System Calibrated. Center Point (0.00mm) Established.";
+        msgBox.style.color = "#04d361";
+        axisCalibrated = true;
+        
+        // Unlock full interaction capabilities across control nodes
+        document.getElementById('target-input').disabled = false;
+        document.getElementById('run-btn').disabled = false;
+        document.getElementById('jog-size').disabled = false;
+        document.getElementById('btn-fwd').disabled = false;
+        document.getElementById('btn-back').disabled = false;
+    })
+    .catch(err => {
+        msgBox.textContent = " Homing Error: " + err.message;
+        msgBox.style.color = "#f44336";
+        calBtn.disabled = false;
+    })
+    .finally(() => {
+        isProcessing = false;
+    });
+}
+
+function transmitCoordinate(jogDirection) {
+    if (isProcessing || !axisCalibrated) return;
+
+    const posDisplay = document.getElementById('pos-display');
+    const msgBox = document.getElementById('msg-display');
+    const stepSize = parseFloat(document.getElementById('jog-size').value);
+    const targetInput = document.getElementById('target-input');
+
+    let payload = {};
+    if (jogDirection) {
+        payload = { jog: jogDirection, step_size: stepSize };
+        msgBox.textContent = `Jogging ${jogDirection == 'forward' ? 'Right' : 'Left'}...`;
+    } else {
+        payload = { target: parseFloat(targetInput.value) };
+        msgBox.textContent = "Re-routing axis profile...";
+    }
+
+    isProcessing = true;
+    msgBox.style.color = "#ffdd57";
+
+    fetch('/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(async res => {
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        return data;
+    })
+    .then(data => {
+        posDisplay.textContent = data.position.toFixed(2);
+        msgBox.textContent = "Target position achieved.";
+        msgBox.style.color = "#04d361";
+    })
+    .catch(err => {
+        msgBox.textContent = " " + err.message;
+        msgBox.style.color = "#f44336";
+    })
+    .finally(() => {
+        isProcessing = false;
+        document.getElementById('btn-fwd').classList.remove('active-press');
+        document.getElementById('btn-back').classList.remove('active-press');
+    });
+}
+
+window.addEventListener('keydown', function(event) {
+    if (["arrowup", "arrowdown", " "].includes(event.key.toLowerCase())) {
+        event.preventDefault();
+    }
+
+    if (event.repeat || isProcessing || !axisCalibrated) return;
+
+    const key = event.key.toLowerCase();
+    if (key === 'w' || key === 'arrowup') {
+        document.getElementById('btn-fwd').classList.add('active-press');
+        transmitCoordinate('forward');
+    } else if (key === 's' || key === 'arrowdown') {
+        document.getElementById('btn-back').classList.add('active-press');
+        transmitCoordinate('backward');
+    }
+});
+</script>
+
+</body>
+</html>
